@@ -271,8 +271,13 @@ func TestDeliverSaysWhoItCouldNotFind(t *testing.T) {
 func TestDeliverRefusesAnOversizedMessage(t *testing.T) {
 	t.Setenv("MAIL_DOMAIN", "example.test")
 	sender := account(t, "sender")
+	// The recipient must exist here: were it not an account, deliverHere would
+	// refuse the message on a missing recipient BEFORE size was ever checked,
+	// and this test would pass on an unrelated error while the cap sat dead.
+	// Exactly maxOutgoingBytes is accepted — a limit means "up to and including".
+	account(t, "someone")
 
-	big := strings.Repeat("x", maxOutgoingBytes)
+	big := strings.Repeat("x", maxOutgoingBytes+1)
 	_, err := Deliver(Outgoing{FromID: sender, Display: "A", To: "someone@example.test",
 		Subject: "hi", Body: big})
 	if err == nil {

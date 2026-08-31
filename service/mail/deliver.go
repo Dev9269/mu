@@ -53,10 +53,13 @@ type Outgoing struct {
 }
 
 // One limit on an Outgoing, checked here where every door meets, so size
-// is a fact about a message rather than about how it arrived. Matches the
-// 10MB the SMTP paths already accept: a stored body is re-marshalled,
-// re-encrypted and re-written on every later delivery to anybody, so one
-// oversized message makes every account slower forever.
+// is a fact about a message rather than about how it arrived. Takes the same
+// 10MB the SMTP paths already accept (smtp.go and submission.go both set
+// MaxMessageBytes = 10<<20), so a message that fits here fits the doors too.
+// Accepting slightly-too-large and failing at the door beats truncating here;
+// a stored body is also re-marshalled, re-encrypted and re-written on every
+// later delivery to anybody, so one oversized message makes every account
+// slower forever.
 const maxOutgoingBytes = 10 << 20
 
 // Deliver sends one message to wherever its recipient is: off this instance
